@@ -39,7 +39,7 @@ from robel.scripts.utils import EpisodeLogger, parse_env_args
 DEFAULT_ENV_NAME = 'DClawTurnFixed-v0'
 
 # The default number of episodes to run.
-DEFAULT_EPISODE_COUNT = 10
+DEFAULT_EPISODE_COUNT = 1000
 
 # Named tuple for information stored over a trajectory.
 Trajectory = collections.namedtuple('Trajectory', [
@@ -54,31 +54,30 @@ Trajectory = collections.namedtuple('Trajectory', [
 
 
 def do_rollouts(env,
-                num_episodes: int,
-                max_episode_length: Optional[int] = None,
+                num_episodes: int, #int类型，且不可缺省
+                max_episode_length: Optional[int] = None,   #
                 action_fn: Optional[Callable[[np.ndarray], np.ndarray]] = None,
                 render_mode: Optional[str] = None):
     """Performs rollouts with the given environment.
 
     Args:
-        num_episodes: The number of episodes to do rollouts for.
-        max_episode_length: The maximum length of an episode.
-        action_fn: The function to use to sample actions for steps. If None,
-            uses random actions.
-        render_mode: The rendering mode. If None, no rendering is performed.
+        num_episodes: 交互的回合数
+        max_episode_length: 一条轨迹的最大长度
+        action_fn: 用于采样交互动作的函数，如果为None，就在动作空间中随机采样
+        render_mode: 是否进行渲染显示，如果是None就不渲染
 
     Yields:
         Trajectory containing:
-            observations: The observations for the episode.
-            rewards: The rewards for the episode.
-            total_reward: The total reward during the episode.
-            infos: The auxiliary information during the episode.
+            observations: 每个回个的观测值
+            rewards: The rewards for the episode. 每个step的reward？
+            total_reward: 整个回合的总的reward
+            infos: The auxiliary information during the episode. 
             renders: Rendered frames during the episode.
             durations: The running execution durations.
     """
     # If no action function is given, use random actions from the action space.
     if action_fn is None:
-        action_fn = lambda _: env.action_space.sample()
+        action_fn = lambda _: env.action_space.sample()  
 
     # Maintain a dictionary of execution durations.
     durations = collections.defaultdict(float)
@@ -88,19 +87,25 @@ def do_rollouts(env,
         durations[key] = (durations[key] * iteration + value) / (iteration + 1)
 
     total_steps = 0
+
     for episode in range(num_episodes):
         episode_start = time.time()
+        #初始化环境
         obs = env.reset()
         record_duration('reset', episode, time.time() - episode_start)
 
         done = False
+        #一个回合的动作序列？
         episode_actions = []
         episode_obs = [obs]
+
         episode_rewards = []
         episode_total_reward = 0
+
         episode_info = collections.defaultdict(list)
         episode_renders = []
 
+        #开始与环境交互直到回合结束
         while not done:
             step_start = time.time()
 
@@ -122,7 +127,8 @@ def do_rollouts(env,
                     episode_renders.append(render_result)
 
             # Record episode information.
-            episode_actions.append(action)
+            #记录当前回合的数据
+            episode_actions.append(action) #
             episode_obs.append(obs)
             episode_rewards.append(reward)
             episode_total_reward += reward
@@ -130,6 +136,7 @@ def do_rollouts(env,
                 episode_info[key].append(value)
 
             total_steps += 1
+            #如果轨迹长度过长
             if (max_episode_length is not None
                     and len(episode_obs) >= max_episode_length):
                 done = True
@@ -164,19 +171,16 @@ def rollout_script(arg_def_fn=None,
         add_policy_arg: If True, adds an argument to take a policy path.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-o', '--output', help='The directory to save rollout data to.')
+    parser.add_argument('-o', '--output', help='The directory to save rollout data to.')
     if add_policy_arg:
-        parser.add_argument(
-            '-p', '--policy', help='The path to the policy file to load.')
+        parser.add_argument('-p', '--policy', help='The path to the policy file to load.')
     parser.add_argument(
         '-n',
         '--num_episodes',
         type=int,
         default=DEFAULT_EPISODE_COUNT,
         help='The number of episodes to run.')
-    parser.add_argument(
-        '--seed', type=int, default=None, help='The seed for the environment.')
+    parser.add_argument('--seed', type=int, default=None, help='The seed for the environment.')
     parser.add_argument(
         '-r',
         '--render',
@@ -188,6 +192,7 @@ def rollout_script(arg_def_fn=None,
     # Add additional argparse arguments.
     if arg_def_fn:
         arg_def_fn(parser)
+
     env_id, params, args = parse_env_args(
         parser, default_env_name=DEFAULT_ENV_NAME)
 
@@ -195,7 +200,21 @@ def rollout_script(arg_def_fn=None,
     if env_factory:
         env = env_factory(args)
     else:
+        #构建环境
         env = gym.make(env_id)
+    
+    #env = gym.make('DClawTurnFixed-v0', device_path='/dev/ttyUSB0')
+
+    obs_space = env.observation_space
+    action_space = env.action_space
+    print("The observation space: {}".format(obs_space)) #Box(21,)  观测值是
+    print("The action space: {}".format(action_space)) #  Box(9,) 猜测是夹爪9个电机的位置或者是扭矩？共9个电机
+
+    #print("Upper Bound for Env Observation", env.observation_space.high) #inf   观察的环境的限制
+    #print("Lower Bound for Env Observation", env.observation_space.low)# -inf
+
+    print("Upper Bound for Env action", env.action_space.high) #  1   输出动作的幅度限制
+    print("Lower Bound for Env action", env.action_space.low)#   -1
 
     action_fn = None
     if policy_factory:
@@ -207,11 +226,12 @@ def rollout_script(arg_def_fn=None,
     paths = []
     try:
         episode_num = 0
+        #在do_rollouts中进行轨迹采样
         for traj in do_rollouts(
-                env,
-                num_episodes=args.num_episodes,
-                action_fn=action_fn,
-                render_mode=args.render,
+                env,#环境
+                num_episodes=args.num_episodes,#回合数
+                action_fn=action_fn,# 代理策略
+                render_mode=args.render,# 是否渲染结果显示出来
         ):
             print('Episode {}'.format(episode_num))
             print('> Total reward: {}'.format(traj.total_reward))
