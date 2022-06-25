@@ -32,6 +32,8 @@ Sending action: [0, 0, 0, 0, 0, 0, 0, 0, 0]
 The script can be started with an environment:
 ```
 $> python robel.scripts.play -e DClawTurnFixed-v0
+打开实体机器人
+python play.py -e DClawTurnFixed-v0 -d /dev/ttyUSB0
 ```
 """
 

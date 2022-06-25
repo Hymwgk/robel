@@ -143,21 +143,25 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             obs_dict: Dict[str, np.ndarray],
     ) -> Dict[str, np.ndarray]:
         """Returns the reward for the given action and observation."""
+        
+        #目标物体当前角度与目标角度的误差
         target_dist = np.abs(obs_dict['target_error'])
+        #角速度
         claw_vel = obs_dict['claw_qvel']
 
+        #
         reward_dict = collections.OrderedDict((
-            # Penalty for distance away from goal.
+            # Penalty for distance away from goal.惩罚距离
             ('target_dist_cost', -5 * target_dist),
-            # Penalty for difference with nomimal pose.
+            # Penalty for difference with nomimal pose.希望手指与初始化姿态差距不远
             ('pose_diff_cost',
              -1 * np.linalg.norm(obs_dict['claw_qpos'] - self._desired_claw_pos)
             ),
-            # Penality for high velocities.
+            # Penality for high velocities.希望各个关节的角速度不至于过大
             ('joint_vel_cost',
              -1 * np.linalg.norm(claw_vel[np.abs(claw_vel) >= 0.5])),
 
-            # Reward for close proximity with goal.
+            # Reward for close proximity with goal.额外奖励,希望旋转的精确度越高越好
             ('bonus_small', 10 * (target_dist < 0.25)),
             ('bonus_big', 50 * (target_dist < 0.10)),
         ))
@@ -209,7 +213,9 @@ class DClawTurnFixed(BaseDClawTurn):
 
 @configurable(pickleable=True)
 class DClawTurnRandom(BaseDClawTurn):
-    """Turns the object with a random initial and random target position."""
+    """Turns the object with a random initial and random target position.
+    随机初始化物体和手指,并移动到随机的目标位置
+    """
 
     def _reset(self):
         # Initial position is +/- 60 degrees.

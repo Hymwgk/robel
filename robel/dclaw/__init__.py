@@ -23,11 +23,13 @@ from robel.utils.registration import register
 # Default number of steps per episode.
 _POSE_EPISODE_LEN = 80  # 80*20*2.5ms = 4s
 
+#手指移动到固定的某个姿态
 register(
     env_id='DClawPoseFixed-v0',
     class_path='robel.dclaw.pose:DClawPoseFixed',
     max_episode_steps=_POSE_EPISODE_LEN)
 
+#手指跟踪一个随机移动的机械手
 register(
     env_id='DClawPoseRandom-v0',
     class_path='robel.dclaw.pose:DClawPoseRandom',

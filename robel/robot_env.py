@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base environment API for robotics tasks."""
+"""Base environment API for robotics tasks.
+定义基础环境，其他所有任务环境都是该环境的子类
+包括Dclaw    以及    Dkitty
+"""
 
 import abc
 import collections
@@ -173,7 +176,9 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
 
     @property
     def dt(self) -> float:
-        """Returns the step duration of each step, in seconds."""
+        """
+        Returns the step duration of each step, in seconds.
+        每步的时间"""
         return self.sim_scene.step_duration
 
     @property
@@ -231,30 +236,30 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         """Runs one timestep of the environment with the given action.
 
         Subclasses must override 4 subcomponents of step:
-        - `_step`: Applies an action to the robot
-        - `get_obs_dict`: Returns the current observation of the robot.
-        - `get_reward_dict`: Calculates the reward for the step.
-        - `get_done`: Returns whether the episode should terminate.
+        - `_step`: Applies an action to the robot.  实施一步动作A_t
+        - `get_obs_dict`: Returns the current observation of the robot.  返回当前机器人的观测
+        - `get_reward_dict`: Calculates the reward for the step.  计算当前step的reward
+        - `get_done`: Returns whether the episode should terminate.  判断当前step是否应该终止
 
         Args:
             action: An action to control the environment.
 
         Returns:
-            observation: The observation of the environment after the timestep.
-            reward: The amount of reward obtained during the timestep.
+            observation: The observation of the environment after the timestep.  实施动作A_t后的观测
+            reward: The amount of reward obtained during the timestep.   获得的reward  R_t
             done: Whether the episode has ended. `env.reset()` should be called
                 if this is True.
             info: Auxiliary information about the timestep.
         """
         # Perform the step.
-        action = self._preprocess_action(action)
-        self._step(action)
-        self.last_action = action
+        action = self._preprocess_action(action) #预处理一下动作
+        self._step(action)  #执行action
+        self.last_action = action  #
 
         # Get the observation after the step.
-        obs_dict = self.get_obs_dict()
-        self.last_obs_dict = obs_dict
-        flattened_obs = self._get_obs(obs_dict)
+        obs_dict = self.get_obs_dict()   #得到下一时刻的观测值
+        self.last_obs_dict = obs_dict   #
+        flattened_obs = self._get_obs(obs_dict)  #
 
         # Get the rewards for the observation.
         batched_action = np.expand_dims(np.atleast_1d(action), axis=0)
@@ -474,7 +479,8 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         return self.last_action
 
     def _preprocess_action(self, action: np.ndarray) -> np.ndarray:
-        """Transforms an action before passing it to `_step()`.
+        """action的预处理
+        Transforms an action before passing it to `_step()`.
 
         Args:
             action: The action in the environment's action space.

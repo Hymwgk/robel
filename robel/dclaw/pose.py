@@ -15,6 +15,7 @@
 """Pose tasks with DClaw robots.
 
 The DClaw is tasked to match a pose defined by the environment.
+pose任务的环境设置,主要是涉及到
 """
 
 import abc
@@ -41,8 +42,10 @@ DEFAULT_OBSERVATION_KEYS = (
 MOTION_VELOCITY_LIMIT = np.pi / 6  # 30deg/s
 
 # The error margin to the desired positions to consider as successful.
+#角度误差容忍范围
 SUCCESS_THRESHOLD = 10 * np.pi / 180
 
+#Mujoco仿真模型配置文件地址
 DCLAW3_ASSET_PATH = 'robel-scenes/dclaw/dclaw3xh.xml'
 
 
@@ -67,7 +70,8 @@ class BaseDClawPose(BaseDClawEnv, metaclass=abc.ABCMeta):
             observation_keys=observation_keys,
             frame_skip=frame_skip,
             **kwargs)
-
+        
+        #初始化9个关节最初的位置信息
         self._initial_pos = np.zeros(9)
         self._desired_pos = np.zeros(9)
 
@@ -113,15 +117,17 @@ class BaseDClawPose(BaseDClawEnv, metaclass=abc.ABCMeta):
             self,
             action: np.ndarray,
             obs_dict: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        ) -> Dict[str, np.ndarray]:
         """Returns the reward for the given action and observation."""
+        
+        #读取当前角速度
         qvel = obs_dict['qvel']
-
+        #在这里计算reward,包括两项
         reward_dict = collections.OrderedDict((
+            # 与目标角度的偏差作为reward,偏差越大,reward越小
             ('pose_error_cost', -1 * np.linalg.norm(obs_dict['qpos_error'])),
-            # Penalty if the velocity exceeds a threshold.
-            ('joint_vel_cost',
-             -0.1 * np.linalg.norm(qvel[np.abs(qvel) >= np.pi])),
+            # Penalty if the velocity exceeds a threshold.对电机角速度进行惩罚
+            ('joint_vel_cost', -0.1 * np.linalg.norm(qvel[np.abs(qvel) >= np.pi])),
         ))
         return reward_dict
 
@@ -131,6 +137,8 @@ class BaseDClawPose(BaseDClawEnv, metaclass=abc.ABCMeta):
             reward_dict: Dict[str, np.ndarray],
     ) -> Dict[str, np.ndarray]:
         """Returns a standardized measure of success for the environment."""
+        
+        #返回成功与否的标准化评价        
         mean_pos_error = np.mean(np.abs(obs_dict['qpos_error']), axis=1)
         score_dict = collections.OrderedDict((
             # Clip and normalize error to 45 degrees.

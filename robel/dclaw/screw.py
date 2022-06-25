@@ -15,6 +15,7 @@
 """Screw tasks with DClaw robots.
 
 This is continuous rotation of an object to match a target velocity.
+连续旋转一个物体,目标是使得阀门匹配一个给定的旋转速度
 """
 
 from typing import Optional
@@ -51,7 +52,9 @@ class BaseDClawScrew(BaseDClawTurn):
         """Applies an action to the robot."""
         # Update the target object goal.
         if not self._interactive:
+            #使用目标速度,相当于不断积分,来增加目标角度
             self._desired_target_pos += self._target_object_vel * self.dt
+            #将目标角度作为实际的任务目标
             self._set_target_object_pos(
                 self._desired_target_pos, unbounded=True)
         super()._step(action)
@@ -59,12 +62,15 @@ class BaseDClawScrew(BaseDClawTurn):
 
 @configurable(pickleable=True)
 class DClawScrewFixed(BaseDClawScrew):
-    """Rotates the object with a fixed initial position and velocity."""
+    """Rotates the object with a fixed initial position and velocity.
+    以一个固定的初始速度和初始姿态来旋转阀门
+    """
 
     def _reset(self):
         # Start from the target and rotate at a constant velocity.
         self._initial_object_pos = 0
         self._set_target_object_pos(0)
+        #给定恒定的旋转速度
         self._target_object_vel = 0.5
         super()._reset()
 
@@ -79,7 +85,7 @@ class DClawScrewRandom(BaseDClawScrew):
             low=-np.pi, high=np.pi)
         self._set_target_object_pos(self._initial_object_pos)
 
-        # Random target velocity.
+        # Random target velocity. 随机给定速度
         self._target_object_vel = self.np_random.uniform(low=-0.75, high=0.75)
         super()._reset()
 

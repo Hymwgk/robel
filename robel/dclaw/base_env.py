@@ -59,7 +59,8 @@ DEFAULT_DCLAW_CALIBRATION_MAP = CalibrationMap({
 
 
 class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
-    """Base environment for all DClaw robot tasks."""
+    """Base environment for all DClaw robot tasks.
+    三指爪的基类"""
 
     def __init__(self,
                  *args,
@@ -83,12 +84,14 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
         self.robot = self._add_component(robot_builder)
 
     def get_state(self) -> Dict[str, np.ndarray]:
-        """Returns the current state of the environment."""
+        """Returns the current state of the environment.
+        返回环境的当前状态S_t"""
         state = self.robot.get_state('dclaw')
         return {'qpos': state.qpos, 'qvel': state.qvel}
 
     def set_state(self, state: Dict[str, np.ndarray]):
-        """Sets the state of the environment."""
+        """Sets the state of the environment.
+        设置仿真/实际环境中夹爪的角度"""
         self.robot.set_state(
             {'dclaw': RobotState(qpos=state['qpos'], qvel=state['qvel'])})
 
@@ -98,12 +101,15 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
         builder.add_group(
             'dclaw',
             qpos_indices=range(9),
+            #配置电机的运动范围
             qpos_range=[
                 (-0.48, 0.48),  # ~27.5 degrees for top servos.
                 (-PI / 3, PI / 3),  # 60 degrees for middle servos.
                 (-PI / 2, PI / 2),  # 90 degrees for bottom servos.
             ] * 3,
+            #配置电机的角速度范围
             qvel_range=[(-2 * PI / 3, 2 * PI / 3)] * 9)
+
         if self._sim_observation_noise is not None:
             builder.update_group(
                 'dclaw', sim_observation_noise=self._sim_observation_noise)
@@ -116,7 +122,9 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
             scripted_reset.add_groups_for_reset(builder)
 
     def _initialize_action_space(self) -> gym.Space:
-        """Returns the observation space to use for this environment."""
+        """Returns the observation space to use for this environment.
+        初始化动作空间
+        动作值是9个电机的位置角度信息,从[-1.0,1.0]再映射到对应的动作范围中"""
         qpos_indices = self.robot.get_config('dclaw').qpos_indices
         return make_box_space(-1.0, 1.0, shape=(qpos_indices.size,))
 
@@ -163,7 +171,8 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
 
 
 class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
-    """Base environment for all DClaw robot tasks with objects."""
+    """Base environment for all DClaw robot tasks with objects.
+    所有包含旋转物体的环境基类"""
 
     def __init__(self, *args, use_guide: bool = False, **kwargs):
         """Initializes the environment.
@@ -179,7 +188,7 @@ class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
         """Returns the current state of the environment."""
         claw_state, object_state = self.robot.get_state(['dclaw', 'object'])
         return {
-            'claw_qpos': claw_state.qpos,
+            'claw_qpos': claw_state.qpos,    
             'claw_qvel': claw_state.qvel,
             'object_qpos': object_state.qpos,
             'object_qvel': object_state.qvel,
