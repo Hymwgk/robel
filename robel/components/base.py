@@ -15,6 +15,7 @@
 """Base API for Components.
 
 A Component provides a unified API between simulation and hardware.
+仿真环境和实际硬件之间的api接口
 """
 
 import abc

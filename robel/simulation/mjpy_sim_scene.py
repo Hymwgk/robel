@@ -42,6 +42,7 @@ class MjPySimScene(SimScene):
 
     def _load_simulation(self, model_handle: Any) -> Any:
         """Loads the simulation from the given model handle.
+        使用Mujoco加载仿真模型
 
         Args:
             model_handle: Path to the Mujoco XML file to load.
@@ -49,13 +50,16 @@ class MjPySimScene(SimScene):
         Returns:
             A mujoco_py MjSim object.
         """
+        #检测xml文件是否合法
         if isinstance(model_handle, str):
             if not os.path.isfile(model_handle):
                 raise ValueError(
                     '[MjPySimScene] Invalid model file path: {}'.format(
                         model_handle))
 
+            #加载xml文件，作为仿真模型
             model = mujoco_py.load_model_from_path(model_handle)
+            #创建仿真模型
             sim = mujoco_py.MjSim(model)
         else:
             raise NotImplementedError(model_handle)

@@ -52,7 +52,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
     """Base Gym environment for robotics tasks."""
 
     def __init__(self,
-                 sim_model: Any,
+                 sim_model: Any, #仿真模型文件加载地址
                  observation_keys: Optional[Sequence[str]] = None,
                  reward_keys: Optional[Sequence[str]] = None,
                  use_dict_obs: bool = False,
@@ -67,6 +67,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
             observation_keys: The keys of `get_obs_dict` to extract and flatten
                 for the default implementation of `_get_obs`. If this is not
                 set, `get_obs_dict` must return an OrderedDict.
+
             reward_keys: The keys of `get_reward_dict` to extract and sum for
                 the default implementation of `_get_total_reward`. If this is
                 not set, `_get_total_reward` will sum all of the values.
@@ -101,7 +102,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         self.is_done = False
         self.step_count = 0
 
-        # Load the simulation.
+        # Load the simulation.  调用mujoco创建仿真环境
         self.sim_scene = SimScene.create(
             sim_model, backend=sim_backend, frame_skip=frame_skip)
         self.sim = self.sim_scene.sim
@@ -130,7 +131,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
     @property
     def observation_space(self) -> gym.Space:
         """Returns the observation space of the environment.
-
+        返回ENV观测空间
         The observation space is the return specification for `reset`,
         `_get_obs`, and the first element of the returned tuple from `step`.
 
@@ -146,7 +147,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
     @property
     def action_space(self) -> gym.Space:
         """Returns the action space of the environment.
-
+        返回ENV动作空间
         The action space is the argument specifiction for `step`.
 
         Subclasses should override `_initialize_action_space` to customize the
@@ -161,7 +162,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
     @property
     def state_space(self) -> gym.Space:
         """Returns the state space of the environment.
-
+        返回ENV状态空间
         The state space is the return specification for `get_state` and is the
         argument specification for `set_state`.
 
@@ -219,10 +220,13 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
             The initial observation of the environment after resetting.
         """
         self.last_action = None
+        #重置仿真环境
         self.sim.reset()
         self.sim.forward()
+        #自己override此项函数
         self._reset()
 
+        #获取当前环境的观测值
         obs_dict = self.get_obs_dict()
         self.last_obs_dict = obs_dict
         self.last_reward_dict = None
@@ -253,13 +257,14 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         """
         # Perform the step.
         action = self._preprocess_action(action) #预处理一下动作
-        self._step(action)  #执行action
+        #执行action
+        self._step(action)  
         self.last_action = action  #
 
         # Get the observation after the step.
         obs_dict = self.get_obs_dict()   #得到下一时刻的观测值
         self.last_obs_dict = obs_dict   #
-        flattened_obs = self._get_obs(obs_dict)  #
+        flattened_obs = self._get_obs(obs_dict)  # 向量形式观测值
 
         # Get the rewards for the observation.
         batched_action = np.expand_dims(np.atleast_1d(action), axis=0)
@@ -507,13 +512,19 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         """
         if obs_dict is None:
             obs_dict = self.get_obs_dict()
+        #是否将状态观测值表示为字典形式
         if self._use_dict_obs:
+            #通过设定self._observation_keys 来从原始的obs_dict
+            #中检索出特定的需要的观测值，并组装成一个新的字典，并返回
             if self._observation_keys:
                 obs = collections.OrderedDict(
                     (key, obs_dict[key]) for key in self._observation_keys)
             else:
                 obs = obs_dict
+        #将观测值拼接为一个flatten向量
         else:
+            #通过设定self._observation_keys 来从原始的obs_dict
+            #中检索出特定的需要的观测值，并组装成一个向量
             if self._observation_keys:
                 obs_values = (obs_dict[key] for key in self._observation_keys)
             else:
@@ -523,8 +534,10 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
             obs = np.concatenate([np.ravel(v) for v in obs_values])
         return obs
 
+
     def _get_total_reward(self, reward_dict: Dict[str, np.ndarray]) -> float:
         """Returns the total reward for the given reward dictionary.
+        根据reward字典，计算一个总的rewared值
 
         The default implementation extracts the keys from `reward_keys` and sums
         the values.
@@ -537,6 +550,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
             The total reward for the dictionary.
         """
         # TODO(michaelahn): Enforce that the reward values are scalar.
+        #检索出特定的reward并计算它们的总和值
         if self._reward_keys:
             reward_values = (reward_dict[key] for key in self._reward_keys)
         else:

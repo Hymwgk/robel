@@ -29,7 +29,8 @@ class SimBackend(enum.Enum):
 
 
 class SimScene(metaclass=abc.ABCMeta):
-    """Encapsulates a MuJoCo robotics simulation."""
+    """Encapsulates a MuJoCo robotics simulation.
+    创建一个mujoco仿真环境"""
 
     @staticmethod
     def create(*args, backend: Union[SimBackend, int], **kwargs) -> 'SimScene':

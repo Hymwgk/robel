@@ -48,15 +48,16 @@ DEFAULT_EPISODE_COUNT = 20
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default="DClawTurnFixed-v0",
                     help='Mujoco Gym environment')
-parser.add_argument('-sim',type=bool,default=False, help='run on hardware or not.')
+#是否连接实际夹爪
+parser.add_argument('-real',type=bool,default=False, help='run on hardware or not.')
 
 parser.add_argument('-o', '--output', help='The directory to save rollout data to.')
 #加载已经训练好的策略
 parser.add_argument('-pa', '--policy_actor',
-    default='/home/wgk/code/RL/Adversarial_Skill_Learning_for_Robust_Manipulation/models/po_sac_actor_DClawTurnFixed-v0_1211023autotune',
+    default='/home/wgk/dataset1/RL/Adversarial_Skill_Learning_for_Robust_Manipulation/train/models/po_sac_actor_DClawTurnFixed-v0_1211023autotune',
     help='The path to the policy actor file to load.')
 parser.add_argument('-pc', '--policy_critic',
-    default='/home/wgk/code/RL/Adversarial_Skill_Learning_for_Robust_Manipulation/models/po_sac_critic_DClawTurnFixed-v0_1211023autotune',
+    default='/home/wgk/dataset1/RL/Adversarial_Skill_Learning_for_Robust_Manipulation/train/models/po_sac_critic_DClawTurnFixed-v0_1211023autotune',
     help='The path to the policy critic file to load.')
 
 #测试的回合数量
@@ -179,6 +180,7 @@ def do_rollouts(env,
 
             # Advance the environment with the action.
             obs, reward, done, info = env.step(action)
+            #time.sleep(0.05)
             step_time = time.time()
             record_duration('step', total_steps, step_time - action_time)
 
@@ -226,10 +228,10 @@ def rollout_script():
     #robel.set_env_params(env_id, params)
 
     #构建环境
-    if args.sim:
-        env = gym.make(args.env_name)
-    else:
+    if args.real:
         env = gym.make(args.env_name,device_path='/dev/ttyUSB0')
+    else:
+        env = gym.make(args.env_name)
         
     
     #env = gym.make('DClawTurnFixed-v0', device_path='/dev/ttyUSB0')

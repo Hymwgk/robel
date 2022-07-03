@@ -37,8 +37,8 @@ class RobotState:
 
         Args:
             qpos: The joint positions, in generalized joint coordinates.
-            qvel: The velocities for each degree of freedom.
-            qacc: The acceleration for each degree of freedom. This is returned
+            qvel: The velocities for each degree of freedom. 每个关节的角速度
+            qacc: The acceleration for each degree of freedom. This is returned  每个关节的加速度
                 by `get_state`. `reset` will ignore this property.
         """
         self.qpos = qpos

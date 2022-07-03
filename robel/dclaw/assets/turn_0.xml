@@ -15,32 +15,24 @@
  -->
 
 <?xml version="1.0"?>
-<mujoco model="dclaw3xh_valve3">
-  <!--可以包含子xml文件，在编译的时候将会在此处展开-->
+<mujoco model="dclaw3xh_valve0">
   <include file="../../robel-scenes/scenes/basic_scene.xml"/>
   <include file="../../robel-scenes/dclaw/assets/dependencies3xh.xml"/>
   <include file="../../robel-scenes/dclaw_stations/assets/dependencies.xml"/>
   <compiler meshdir="../../robel-scenes/dclaw" texturedir="../../robel-scenes/dclaw"/>
-
   <worldbody>
     <camera name="targeting" pos="1 1 2" mode="targetbodycom" target="dClaw"/>
     <camera name="object_target" pos="0 0 0.33" mode="targetbody" target="object"/>
-    
-    <!--三指手本体-->
     <body name="mount" pos="0 0 .335" euler="0 0 0">
       <geom name="mount" type="cylinder" size="0.03 0.005" rgba=".7 .7 .7 1"/>
       <include file="../../robel-scenes/dclaw/assets/chain3xh.xml"/>
       <include file="../../robel-scenes/dclaw/assets/chain3xh_overlay.xml"/>
     </body>
-    <!--目标阀门以及阀门下面的电机和基座板 -->
-    <body name="object" pos="0 0 0.0001">
-      <include file="../../robel-scenes/dclaw_stations/assets/valve3.xml"/>
+    <body name="object" pos="0 0 0.0151">
+      <include file="../../robel-scenes/dclaw_stations/assets/valve0.xml"/>
     </body>
-    <!--标识目标指向的绿色棒-->
     <body name="target" pos="0 0 0">
       <site name="tmark" type="capsule" size=".003 0.04" pos=".04 0 0" rgba="0 1 0 1" euler="0 1.57 0"/>
     </body>
-
   </worldbody>
-  
 </mujoco>

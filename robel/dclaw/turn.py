@@ -32,16 +32,16 @@ from robel.utils.resources import get_asset_path
 
 # The observation keys that are concatenated as the environment observation.
 DEFAULT_OBSERVATION_KEYS = (
-    'claw_qpos',
-    'object_x',
-    'object_y',
-    'last_action',
-    'target_error',
+    'claw_qpos',  #[9,]
+    'object_x',#[1,]
+    'object_y',#[1,]
+    'last_action',#[9,]
+    'target_error',#[1,]
 )
 
 # Reset pose for the claw joints.
 RESET_POSE = [0, -np.pi / 3, np.pi / 3] * 3
-
+#指定模型文件
 DCLAW3_ASSET_PATH = 'robel/dclaw/assets/dclaw3xh_valve3_v0.xml'
 
 
@@ -81,8 +81,10 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
         self._target_bid = self.model.body_name2id('target')
 
         # The following are modified (possibly every reset) by subclasses.
+        #初始化时，设置阀门初始角度为0
         self._initial_object_pos = 0
         self._initial_object_vel = 0
+        #初始化时，设置阀门目标角度为0
         self._set_target_object_pos(0)
 
     def _reset(self):
@@ -106,7 +108,7 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
 
     def get_obs_dict(self) -> Dict[str, np.ndarray]:
         """Returns the current observation of the environment.
-
+        返回完整的观测空间的字典形式； 使用self._get_obs()来根据指定的key进行索引输出
         Returns:
             A dictionary of observation values. This should be an ordered
             dictionary if `observation_keys` isn't set.
@@ -121,7 +123,7 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
         # Calculate the signed angle difference to the target in [-pi, pi].
         target_error = self._target_object_pos - object_state.qpos
         target_error = np.mod(target_error + np.pi, 2 * np.pi) - np.pi
-
+        #全观测空间，实际上没有用到这么多，使用给定的字典进行筛选
         obs_dict = collections.OrderedDict((
             ('claw_qpos', claw_state.qpos),
             ('claw_qvel', claw_state.qvel),
@@ -139,17 +141,17 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
 
     def get_reward_dict(
             self,
-            action: np.ndarray,
+            action: np.ndarray, #动作A_t实际上没有参与计算
             obs_dict: Dict[str, np.ndarray],
     ) -> Dict[str, np.ndarray]:
         """Returns the reward for the given action and observation."""
         
         #目标物体当前角度与目标角度的误差
         target_dist = np.abs(obs_dict['target_error'])
-        #角速度
+        #从观测值中抽取出各个关节的角速度
         claw_vel = obs_dict['claw_qvel']
 
-        #
+        #计算每一项因素的的reward
         reward_dict = collections.OrderedDict((
             # Penalty for distance away from goal.惩罚距离
             ('target_dist_cost', -5 * target_dist),
@@ -157,9 +159,9 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             ('pose_diff_cost',
              -1 * np.linalg.norm(obs_dict['claw_qpos'] - self._desired_claw_pos)
             ),
-            # Penality for high velocities.希望各个关节的角速度不至于过大
+            # Penality for high velocities.希望各个关节的角速度不至于过大,用于调节关节角的移动速度
             ('joint_vel_cost',
-             -1 * np.linalg.norm(claw_vel[np.abs(claw_vel) >= 0.5])),
+             -1 * np.linalg.norm(claw_vel[np.abs(claw_vel) >= 0.2])), #-1，  0.5
 
             # Reward for close proximity with goal.额外奖励,希望旋转的精确度越高越好
             ('bonus_small', 10 * (target_dist < 0.25)),
@@ -203,10 +205,11 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
 @configurable(pickleable=True)
 class DClawTurnFixed(BaseDClawTurn):
     """Turns the object with a fixed initial and fixed target position."""
-
+    
     def _reset(self):
         # Turn from 0 degrees to 180 degrees.
         self._initial_object_pos = 0
+        #在这里设置目标的阀门角度
         self._set_target_object_pos(np.pi)
         super()._reset()
 

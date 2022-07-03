@@ -86,6 +86,7 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
     def get_state(self) -> Dict[str, np.ndarray]:
         """Returns the current state of the environment.
         返回环境的当前状态S_t"""
+        #从mujoco中读取状态
         state = self.robot.get_state('dclaw')
         return {'qpos': state.qpos, 'qvel': state.qvel}
 
@@ -172,7 +173,7 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
 
 class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
     """Base environment for all DClaw robot tasks with objects.
-    所有包含旋转物体的环境基类"""
+    所有包含旋转阀门的环境基类"""
 
     def __init__(self, *args, use_guide: bool = False, **kwargs):
         """Initializes the environment.

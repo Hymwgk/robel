@@ -50,7 +50,95 @@ _TURN_EPISODE_LEN = 40  # 40*40*2.5ms = 4s
 register(
     env_id='DClawTurnFixed-v0',
     class_path='robel.dclaw.turn:DClawTurnFixed',
-    max_episode_steps=_TURN_EPISODE_LEN)
+    max_episode_steps=_TURN_EPISODE_LEN,
+    kwargs={'sim_observation_noise':0.02, #为观测空间添加噪声
+    })
+
+
+
+register(
+    env_id='DClawTurnFixedT0-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_0.xml',
+        'frame_skip':40,
+        })
+register(
+    env_id='DClawTurnFixedT1-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_1.xml',
+            'frame_skip':40,
+            })
+register(
+    env_id='DClawTurnFixedT2-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_2.xml',
+            'frame_skip':40,
+            })
+register(
+    env_id='DClawTurnFixedT3-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_3.xml',
+            'frame_skip':40,
+            })
+register(
+    env_id='DClawTurnFixedT4-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_4.xml',
+            'frame_skip':40,
+            })
+register(
+    env_id='DClawTurnFixedT5-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_5.xml',
+        'frame_skip':40,
+        })
+register(
+    env_id='DClawTurnFixedT6-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_6.xml',
+        'frame_skip':40,
+        })
+
+register(
+    env_id='DClawTurnFixedT7-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_7.xml',
+        'frame_skip':40,
+        })
+
+register(
+    env_id='DClawTurnFixedT8-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_8.xml',
+        'frame_skip':40,
+        })
+
+register(
+    env_id='DClawTurnFixedT9-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_9.xml',
+        'frame_skip':40,
+        })
+register(
+    env_id='DClawTurnFixedT10-v0',
+    class_path='robel.dclaw.turn:DClawTurnFixed',
+    max_episode_steps=_TURN_EPISODE_LEN ,
+    kwargs={'asset_path':'robel/dclaw/assets/turn_10.xml',
+        'frame_skip':40,
+        })
+
+
+
 
 register(
     env_id='DClawTurnRandom-v0',

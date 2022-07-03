@@ -33,9 +33,9 @@ from robel.utils.resources import get_asset_path
 
 # The observation keys that are concatenated as the environment observation.
 DEFAULT_OBSERVATION_KEYS = (
-    'qpos',
-    'last_action',
-    'qpos_error',
+    'qpos',#9
+    'last_action',#9
+    'qpos_error',#9
 )
 
 # The maximum velocity for the motion task.
